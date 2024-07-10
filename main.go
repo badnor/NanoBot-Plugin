@@ -45,104 +45,90 @@ import (
 )
 
 func main() {
-	if !strings.Contains(runtime.Version(), "go1.2") { // go1.20之前版本需要全局 seed，其他插件无需再 seed
-		rand.Seed(time.Now().UnixNano()) //nolint: staticcheck
-	}
+    if !strings.Contains(runtime.Version(), "go1.2") { // go1.20之前版本需要全局 seed，其他插件无需再 seed
+        rand.Seed(time.Now().UnixNano()) // nolint: staticcheck
+    }
 
-	token := flag.String("eFwedFu69wAsW4HD1IsG2HKl2f3b0yxu", "", "qq api token")
-	appid := flag.String("102048043", "", "qq appid")
-	secret := flag.String("9IRajs1BLVfpz9JUfq1CNYkw8KWiu7KX", "", "qq secret")
-	debug := flag.Bool("D", false, "enable debug-level log output")
-	timeout := flag.Int("T", 60, "api timeout (s)")
-	help := flag.Bool("h", false, "print this help")
-	loadconfig := flag.String("c", "", "load from config")
-	sandbox := flag.Bool("sandbox", false, "run in sandbox api")
-	onlypublic := flag.Bool("public", false, "only listen to public intent")
-	addqqintent := flag.Bool("qq", false, "also listen QQ intent")
-	shardindex := flag.Uint("shardindex", 0, "shard index")
-	shardcount := flag.Uint("shardcount", 0, "shard count")
-	savecfg := flag.String("save", "", "save bot config to filename (eg. config.yaml)")
-	superallqqusers := flag.Bool("superallqq", false, "make all QQ users to be SuperUser")
-	flag.Parse()
-	if *help {
-		fmt.Println("Usage:")
-		flag.PrintDefaults()
-		os.Exit(0)
-	}
+    token := flag.String("eFwedFu69wAsW4HD1IsG2HKl2f3b0yxu", "", "qq api token")
+    appid := flag.String("102048043", "", "qq appid")
+    secret := flag.String("9IRajs1BLVfpz9JUfq1CNYkw8KWiu7KX", "", "qq secret")
+    debug := flag.Bool("D", false, "enable debug-level log output")
+    timeout := flag.Int("T", 60, "api timeout (s)")
+    help := flag.Bool("h", false, "print this help")
+    loadconfig := flag.String("c", "", "load from config")
+    sandbox := flag.Bool("sandbox", false, "run in sandbox api")
+    onlypublic := flag.Bool("public", false, "only listen to public intent")
+    addqqintent := flag.Bool("qq", false, "also listen QQ intent")
+    shardindex := flag.Uint("shardindex", 0, "shard index")
+    shardcount := flag.Uint("shardcount", 0, "shard count")
+    savecfg := flag.String("save", "", "save bot config to filename (eg. config.yaml)")
+    flag.Parse()
+    if *help {
+        fmt.Println("Usage:")
+        flag.PrintDefaults()
+        os.Exit(0)
+    }
 
-	if *debug {
-		logrus.SetLevel(logrus.DebugLevel)
-	}
-	intent := uint32(nano.IntentGuildPrivate)
-	if *onlypublic {
-		intent = nano.IntentGuildPublic
-	}
-	if *addqqintent {
-		intent |= nano.IntentQQ
-	}
+    if *debug {
+        logrus.SetLevel(logrus.DebugLevel)
+    }
+    intent := uint32(nano.IntentGuildPrivate)
+    if *onlypublic {
+        intent = nano.IntentGuildPublic
+    }
+    if *addqqintent {
+        intent |= nano.IntentQQ
+    }
 
-	sus := make([]string, 0, 16)
-	if *superallqqusers {
-		sus = append(sus, nano.SuperUserAllQQUsers)
-	}
-	for _, s := range flag.Args() {
-		_, err := strconv.ParseInt(s, 10, 64)
-		if err != nil {
-			continue
-		}
-		sus = append(sus,s)
-	}
+    // 默认超级用户QQ号为1065992618
+    sus := []string{"1065992618"}
 
-	if *sandbox {
-		nano.OpenAPI = nano.SandboxAPI
-	}
+    for _, s := range flag.Args() {
+        _, err := strconv.ParseInt(s, 10, 64)
+        if err != nil {
+            continue
+        }
+        sus = append(sus, s)
+    }
 
-	bot := []*nano.Bot{}
-	if *loadconfig == "" {
-		bot = append(bot, &nano.Bot{
-			AppID:      *appid,
-			Token:      *token,
-			Secret:     *secret,
-			SuperUsers: sus,
-			Timeout:    time.Duration(*timeout) * time.Second,
-			Intents:    intent,
-			ShardIndex: uint8(*shardindex),
-			ShardCount: uint8(*shardcount),
-		})
-	} else {
-		f, err := os.Open(*loadconfig)
-		if err != nil {
-			logrus.Fatal(err)
-		}
-		dec := yaml.NewDecoder(f)
-		dec.KnownFields(true)
-		err = dec.Decode(&bot)
-		_ = f.Close()
-		if err != nil {
-			logrus.Fatal(err)
-		}
-	}
-	if *savecfg != "" {
-		f, err := os.Create(*savecfg)
-		if err != nil {
-			logrus.Fatal(err)
-		}
-		defer f.Close()
-		err = yaml.NewEncoder(f).Encode(bot)
-		if err != nil {
-			logrus.Fatal(err)
-		}
-		logrus.Infoln("已将当前配置保存到", *savecfg)
-		return
-	}
+    if *sandbox {
+        nano.OpenAPI = nano.SandboxAPI
+    }
 
-	nano.OnMessageCommandGroup([]string{"help", "帮助", "menu", "菜单"}, nano.OnlyToMe).SetBlock(true).
-		Handle(func(ctx *nano.Ctx) {
-			_, _ = ctx.SendChain(nano.Text(banner.Banner))
-		})
-	nano.OnMessageFullMatch("查看nbp公告", nano.OnlyToMe, nano.AdminPermission).SetBlock(true).
-		Handle(func(ctx *nano.Ctx) {
-			_, _ = ctx.SendChain(nano.Text(strings.ReplaceAll(kanban.Kanban(), "\t", "")))
-		})
-	_ = nano.Run(process.GlobalInitMutex.Unlock, bot...)
+    bot := []*nano.Bot{
+        {
+            AppID:      *appid,
+            Token:      *token,
+            Secret:     *secret,
+            SuperUsers: sus,
+            Timeout:    time.Duration(*timeout) * time.Second,
+            Intents:    intent,
+            ShardIndex: uint8(*shardindex),
+            ShardCount: uint8(*shardcount),
+        },
+    }
+
+    if *savecfg != "" {
+        f, err := os.Create(*savecfg)
+        if err != nil {
+            logrus.Fatal(err)
+        }
+        defer f.Close()
+        err = yaml.NewEncoder(f).Encode(bot)
+        if err != nil {
+            logrus.Fatal(err)
+        }
+        logrus.Infoln("已将当前配置保存到", *savecfg)
+        return
+    }
+
+    nano.OnMessageCommandGroup([]string{"help", "帮助", "menu", "菜单"}, nano.OnlyToMe).SetBlock(true).
+        Handle(func(ctx *nano.Ctx) {
+            _, _ = ctx.SendChain(nano.Text(banner.Banner))
+        })
+    nano.OnMessageFullMatch("查看nbp公告", nano.OnlyToMe, nano.AdminPermission).SetBlock(true).
+        Handle(func(ctx *nano.Ctx) {
+            _, _ = ctx.SendChain(nano.Text(strings.ReplaceAll(kanban.Kanban(), "\t", "")))
+        })
+    _ = nano.Run(process.GlobalInitMutex.Unlock, bot...)
 }
