@@ -55,7 +55,7 @@ func main() {
     debug := flag.Bool("D", false, "enable debug-level log output")
     timeout := flag.Int("T", 60, "api timeout (s)")
     help := flag.Bool("h", false, "print this help")
-    loadconfig := flag.String("c", "", "load from config")
+    // loadconfig := flag.String("c", "", "load from config") // 注释掉未使用的变量
     sandbox := flag.Bool("sandbox", false, "run in sandbox api")
     onlypublic := flag.Bool("public", false, "only listen to public intent")
     addqqintent := flag.Bool("qq", false, "also listen QQ intent")
