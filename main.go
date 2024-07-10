@@ -49,9 +49,9 @@ func main() {
 		rand.Seed(time.Now().UnixNano()) //nolint: staticcheck
 	}
 
-	token := flag.String("t", "", "qq api token")
-	appid := flag.String("a", "", "qq appid")
-	secret := flag.String("s", "", "qq secret")
+	token := flag.String("eFwedFu69wAsW4HD1IsG2HKl2f3b0yxu", "", "qq api token")
+	appid := flag.String("102048043", "", "qq appid")
+	secret := flag.String("9IRajs1BLVfpz9JUfq1CNYkw8KWiu7KX", "", "qq secret")
 	debug := flag.Bool("D", false, "enable debug-level log output")
 	timeout := flag.Int("T", 60, "api timeout (s)")
 	help := flag.Bool("h", false, "print this help")
@@ -90,7 +90,7 @@ func main() {
 		if err != nil {
 			continue
 		}
-		sus = append(sus, s)
+		sus = append(1065992618)
 	}
 
 	if *sandbox {
