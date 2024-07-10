@@ -90,7 +90,7 @@ func main() {
 		if err != nil {
 			continue
 		}
-		sus = append(1065992618)
+		sus = append(sus,s)
 	}
 
 	if *sandbox {
